@@ -2,6 +2,9 @@ const express = require('express')
 const ejs = require('ejs')
 const lodash = require('lodash')
 const bodyParsher = require('body-parser')
+const mongoose = require('mongoose');
+
+mongoose.connect('mongodb://localhost:27017/blogDB')
 
 const app = express();
 
@@ -13,11 +16,28 @@ const homeStartingContent = "Lacus vel facilisis volutpat est velit egestas dui 
 const aboutContent = "Hac habitasse platea dictumst vestibulum rhoncus est pellentesque. Dictumst vestibulum rhoncus est pellentesque elit ullamcorper. Non diam phasellus vestibulum lorem sed. Platea dictumst quisque sagittis purus sit. Egestas sed sed risus pretium quam vulputate dignissim suspendisse. Mauris in aliquam sem fringilla. Semper risus in hendrerit gravida rutrum quisque non tellus orci. Amet massa vitae tortor condimentum lacinia quis vel eros. Enim ut tellus elementum sagittis vitae. Mauris ultrices eros in cursus turpis massa tincidunt dui.";
 const contactContent = "Scelerisque eleifend donec pretium vulputate sapien. Rhoncus urna neque viverra justo nec ultrices. Arcu dui vivamus arcu felis bibendum. Consectetur adipiscing elit duis tristique. Risus viverra adipiscing at in tellus integer feugiat. Sapien nec sagittis aliquam malesuada bibendum arcu vitae. Consequat interdum varius sit amet mattis. Iaculis nunc sed augue lacus. Interdum posuere lorem ipsum dolor sit amet consectetur adipiscing elit. Pulvinar elementum integer enim neque. Ultrices gravida dictum fusce ut placerat orci nulla. Mauris in aliquam sem fringilla ut morbi tincidunt. Tortor posuere ac ut consequat semper viverra nam libero.";
 
-const blogs = [];
+
+const blogSchema = mongoose.Schema({
+    title: {
+        type: String,
+        required: [true, "Title is required in order to compose new blog."]
+    },
+    blogContent: {
+        type: String,
+        required: [true, "Content is required in order to compose new blog."]
+
+    }
+});
+
+const Blogs = mongoose.model('Blogs', blogSchema);
 
 app.get('/', (req, res) => {
+    Blogs.find({}, (err, blogList) => {
+        if (!err) {
+            res.render('home.ejs', { homeContent: homeStartingContent, newPost: blogList });
+        }
+    })
 
-    res.render('home.ejs', { homeContent: homeStartingContent, newPost: blogs });
 });
 
 app.get('/about', (req, res) => {
@@ -40,24 +60,38 @@ app.post('/compose', (req, res) => {
         title: req.body.newBlogTitle,
         post: req.body.newBlogContent
     };
-    blogs.push(newBlog);
+    const composeBlog = new Blogs({
+        title: lodash.lowerCase(newBlog.title),
+        blogContent: newBlog.post
+    });
+    composeBlog.save();
     res.redirect('/');
 });
 
 app.get('/posts/:topic', (req, res) => {
     var reqTitle = lodash.lowerCase(req.params.topic);
-    blogs.forEach((ele) => {
-        var storeTitle = lodash.lowerCase(ele.title);
-        if (reqTitle === storeTitle) {
+    Blogs.findOne({ title: reqTitle }, (err, foundBlog) => {
+        if (!err) {
             res.render("post.ejs", {
-                title: ele.title,
-                content: ele.post
+                title: lodash.capitalize(foundBlog.title),
+                content: foundBlog.blogContent
             });
         }
-        else {
-            console.log("Not a match");
-        }
-    });
+        else
+            console.log(err);
+    })
+    // blogs.forEach((ele) => {
+    //     var storeTitle = lodash.lowerCase(ele.title);
+    //     if (reqTitle === storeTitle) {
+    //         res.render("post.ejs", {
+    //             title: ele.title,
+    //             content: ele.post
+    //         });
+    //     }
+    //     else {
+    //         console.log("Not a match");
+    //     }
+    // });
 })
 
 app.listen(3000, () => {

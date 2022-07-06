@@ -3,9 +3,9 @@
 <p><%=homeContent%></p>
 <%newPost.forEach((e)=> {%>
 
-<h1><%=e.title%></h1>
+<h1><%=e.title[0].toUpperCase()+e.title.substring(1)%></h1>
 <p>
-  <%=e.post.substring(0, 100) + "..."%><a href="/posts/ + <%=e.title%>"
+  <%=e.blogContent.substring(0, 100) + "..."%><a href="/posts/ + <%=e.title%>"
     >read more</a
   >
 </p>
