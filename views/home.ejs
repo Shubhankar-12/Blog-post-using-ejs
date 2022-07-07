@@ -5,7 +5,7 @@
 
 <h1><%=e.title[0].toUpperCase()+e.title.substring(1)%></h1>
 <p>
-  <%=e.blogContent.substring(0, 100) + "..."%><a href="/posts/ + <%=e.title%>"
+  <%=e.blogContent.substring(0, 100) + "..."%><a href="/posts/<%=e._id%>"
     >read more</a
   >
 </p>

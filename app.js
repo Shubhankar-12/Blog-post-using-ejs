@@ -34,7 +34,10 @@ const Blogs = mongoose.model('Blogs', blogSchema);
 app.get('/', (req, res) => {
     Blogs.find({}, (err, blogList) => {
         if (!err) {
-            res.render('home.ejs', { homeContent: homeStartingContent, newPost: blogList });
+            res.render('home.ejs', {
+                homeContent: homeStartingContent,
+                newPost: blogList
+            });
         }
     })
 
@@ -56,24 +59,26 @@ app.get('/compose', (req, res) => {
 });
 
 app.post('/compose', (req, res) => {
-    var newBlog = {
-        title: req.body.newBlogTitle,
-        post: req.body.newBlogContent
-    };
+    // var newBlog = {
+    //     title: req.body.newBlogTitle,
+    //     post: req.body.newBlogContent
+    // };
     const composeBlog = new Blogs({
-        title: lodash.lowerCase(newBlog.title),
-        blogContent: newBlog.post
+        title: req.body.newBlogTitle,
+        blogContent: req.body.newBlogContent
     });
-    composeBlog.save();
-    res.redirect('/');
+    composeBlog.save((err) => {
+        if (!err)
+            res.redirect('/');
+    });
 });
 
-app.get('/posts/:topic', (req, res) => {
-    var reqTitle = lodash.lowerCase(req.params.topic);
-    Blogs.findOne({ title: reqTitle }, (err, foundBlog) => {
+app.get('/posts/:postID', (req, res) => {
+    const reqID = req.params.postID;
+    Blogs.findOne({ _id: reqID }, (err, foundBlog) => {
         if (!err) {
             res.render("post.ejs", {
-                title: lodash.capitalize(foundBlog.title),
+                title: foundBlog.title,
                 content: foundBlog.blogContent
             });
         }
